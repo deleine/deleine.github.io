@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Feedback Loop Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #202124;
+        }
+
+        .explanation-box {
+            background-color: #e8f0fe;
+            border-left: 5px solid #1a73e8;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            line-height: 1.6;
+        }
+        
+        .explanation-title {
+            color: #1a73e8;
+            margin-top: 0;
+            font-size: 1.25em;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .search-input {
+            flex-grow: 1;
+            border: none;
+            font-size: 18px;
+            outline: none;
+            color: #333;
+        }
+        .search-button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dfe1e5;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            position: relative;
+        }
+        
+        .result-item:hover {
+            box-shadow: 0 6px 16px rgba(26, 115, 232, 0.2);
+            border-color: #1a73e8;
+            background-color: #f8fbff;
+            transform: translateY(-2px);
+        }
+
+        .result-url {
+            color: #202124;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .result-title {
+            color: #1a0dab;
+            font-size: 20px;
+            margin: 0 0 8px 0;
+            text-decoration: none;
+        }
+        .result-item:hover .result-title {
+            text-decoration: underline;
+        }
+        .result-snippet {
+            color: #4d5156;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .boosted {
+            animation: highlight 1.5s ease-out;
+        }
+
+        @keyframes highlight {
+            0% { background-color: #d2e3fc; }
+            100% { background-color: white; }
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background-color: #202124;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="explanation-box">
+        <h2 class="explanation-title">The Search Engine Feedback Loop</h2>
+        <p>This simulator illustrates how search engines can contribute to the spread of misinformation through a feedback loop between users and algorithms. Research indicates that when people repeatedly click a particular result for a query, that behavior can contribute to the result receiving greater visibility for that query and related searches. Because the content people see first is also the content they will most likely click on, this new ranking position will continue to drive further engagement.</p>
+        <p>Try clicking the sensationalized result below. It moves to the top of the list, simulating how user engagement signals relevance to the algorithm, allowing misinformation to persist in top search results over factual debunking. </p>
+    </div>
+
+    <div class="search-container">
+        <input type="text" class="search-input" value="mothman" readonly>
+        <button class="search-button">Search</button>
+    </div>
+
+    <div class="results-list" id="resultsList">
+        <!-- Result 1: reliable -->
+        <div class="result-item">
+            <div class="result-url">wildlife-biology-institute.org › local-fauna › bird-identification</div>
+            <h3 class="result-title">Debunked: Recent "Mothman" Photos Show a Sandhill Crane</h3>
+            <p class="result-snippet">Wildlife experts confirm that the viral images captured near the old power plant actually show an out-of-focus Sandhill crane caught in headlights, not a supernatural winged humanoid...</p>
+        </div>
+
+        <!-- Result 2: neutral -->
+        <div class="result-item">
+            <div class="result-url">regional-news-daily.com › community › events</div>
+            <h3 class="result-title">Annual Cryptid Festival Draws Record Crowds This Weekend</h3>
+            <p class="result-snippet">Local businesses are preparing for an influx of tourists as the annual festival celebrating regional folklore, urban legends, and the famous Mothman kicks off this Friday...</p>
+        </div>
+
+        <!-- Result 3: hoax -->
+        <div class="result-item">
+            <div class="result-url">paranormal-truth-uncovered.net › alert › mothman-returns</div>
+            <h3 class="result-title">URGENT: Mothman Spotted on Highway—Do Not Drive at Night!</h3>
+            <p class="result-snippet">The glowing red eyes have returned! Multiple drivers report being chased by a terrifying 7-foot winged creature. Share this to warn your family before you get in your car!</p>
+        </div>
+    </div>
+
+    <div id="toast" class="toast-notification">
+        Your selection has contributed to the profile that is used to personalize your results. What you click now shapes what you see in the future. 
+    </div>
+
+    <script>
+        const resultsContainer = document.getElementById('resultsList');
+        const toast = document.getElementById('toast');
+        let toastTimeout;
+
+        resultsContainer.addEventListener('click', function(e) {
+            const clickedItem = e.target.closest('.result-item');
+            if (!clickedItem) return;
+
+            clearTimeout(toastTimeout);
+            toast.classList.remove('show');
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+                toastTimeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3500);
+            }, 50);
+
+            if (resultsContainer.firstElementChild === clickedItem) return;
+
+            resultsContainer.prepend(clickedItem);
+
+            clickedItem.classList.remove('boosted');
+            void clickedItem.offsetWidth;
+            clickedItem.classList.add('boosted');
+        });
+    </script>
+</body>
+</html>
